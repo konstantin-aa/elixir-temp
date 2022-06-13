@@ -19,7 +19,7 @@ defmodule Temp do
   end
 
   defp start_tracker() do
-    case GenServer.start_link(Temp.Tracker, nil, []) do
+    case Temp.Tracker.Hub.start_child() do
       {:ok, pid} ->
         Process.put(@pdict_key, pid)
         {:ok, pid}

@@ -2,7 +2,7 @@ defmodule Temp.Mixfile do
   use Mix.Project
 
   @source_url "https://github.com/tuvistavie/elixir-temp"
-  @version "0.4.7"
+  @version "0.5.0"
 
   def project do
     [
@@ -22,7 +22,7 @@ defmodule Temp.Mixfile do
   end
 
   def application do
-    [applications: [:logger]]
+    [applications: [:logger], mod: {Temp.Application, []}]
   end
 
   defp deps do

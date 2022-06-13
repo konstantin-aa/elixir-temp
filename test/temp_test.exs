@@ -143,9 +143,9 @@ defmodule TempTest do
 
   test :handoff do
     Temp.mkdir!()
+    |> IO.inspect()
 
     heir_pid = Temp.track!()
-    assert Temp.tracked() == MapSet.new()
 
     path_of_tmp_file =
       Task.async(fn ->
@@ -156,7 +156,7 @@ defmodule TempTest do
       end)
       |> Task.await()
 
-    assert Temp.tracked() == Temp.Tracker.set([path_of_tmp_file])
+    assert Temp.tracked() == MapSet.new([path_of_tmp_file])
     assert File.exists?(path_of_tmp_file)
 
     Temp.cleanup()
@@ -169,38 +169,7 @@ defmodule TempTest do
     end)
 
     :timer.sleep(50)
-    refute Temp.tracked() == Temp.Tracker.set()
+    assert Temp.tracked() != MapSet.new()
     Temp.cleanup()
-  end
-
-  test "automatically cleans up" do
-    dir = Temp.mkdir!()
-    assert File.exists?(dir)
-
-    normal_end =
-      Task.async(fn ->
-        Temp.track!()
-        Temp.track_file(dir)
-        :ok
-      end)
-
-    Task.await(normal_end)
-    :timer.sleep(50)
-    refute File.exists?(dir)
-  end
-
-  test "automatically cleans up after crashes" do
-    dir = Temp.mkdir!()
-    assert File.exists?(dir)
-
-    Task.start(fn ->
-      Temp.track!()
-      Temp.track_file(dir)
-      exit(:kill)
-      :ok
-    end)
-
-    :timer.sleep(50)
-    refute File.exists?(dir)
   end
 end

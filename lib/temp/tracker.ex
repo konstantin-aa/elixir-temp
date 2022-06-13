@@ -28,14 +28,15 @@ defmodule Temp.Tracker do
     defdelegate intersection(set1, set2), to: HashSet
   end
 
-  @spec start_link(any()) :: GenServer.on_start()
-  def start_link(_) do
-    GenServer.start_link(__MODULE__, nil)
+  @spec start_link(pid()) :: GenServer.on_start()
+  def start_link(tracked_pid) do
+    GenServer.start_link(__MODULE__, tracked_pid)
   end
 
-  @spec init(any()) :: {:ok, state()}
-  def init(_) do
+  @spec init(pid()) :: {:ok, state()}
+  def init(tracked_pid) do
     Process.flag(:trap_exit, true)
+    Process.monitor(tracked_pid)
     {:ok, set()}
   end
 
@@ -67,6 +68,11 @@ defmodule Temp.Tracker do
   def terminate(_reason, state) do
     cleanup(state)
     :ok
+  end
+
+  @spec handle_info({:DOWN, any(), any(), any(), any()}, state()) :: {:noreply, state()}
+  def handle_info({:DOWN, _, _, _, _}, state) do
+    {:stop, :normal, state}
   end
 
   defp cleanup(state) do
